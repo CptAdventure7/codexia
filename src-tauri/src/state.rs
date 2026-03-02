@@ -1,3 +1,4 @@
+use crate::features::event_sink::EventSink;
 use notify::RecommendedWatcher;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -19,4 +20,8 @@ impl Default for WatchState {
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub struct CodexEventSinkState {
+    pub event_sink: Arc<dyn EventSink>,
 }

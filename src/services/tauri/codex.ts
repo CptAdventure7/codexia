@@ -52,6 +52,26 @@ export async function initializeCodexAsync() {
   }
 }
 
+export async function isCodexCliInstalled() {
+  if (isTauri()) {
+    return await invokeTauri<boolean>('codex_cli_installed');
+  }
+  return true;
+}
+
+export async function installCodexCliUser() {
+  if (isTauri()) {
+    return await invokeTauri<string>('install_codex_cli_user');
+  }
+  return '';
+}
+
+export async function ensureCodexConnected() {
+  if (isTauri()) {
+    return await invokeTauri<void>('ensure_codex_connected');
+  }
+}
+
 export async function listModels() {
   const params: ModelListParams = {
     cursor: null,

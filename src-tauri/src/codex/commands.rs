@@ -13,9 +13,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use std::time::Instant;
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 
-use super::{AppState, CodexInitializationState, initialize_codex, scan};
+use super::{AppState, CodexInitializationState, connect_codex, initialize_codex, scan};
 
 fn to_value<T: serde::Serialize>(value: T) -> Result<Value, String> {
     serde_json::to_value(value).map_err(|e| e.to_string())
@@ -28,6 +28,32 @@ fn from_value<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, String>
 #[tauri::command]
 pub fn codex_home() -> PathBuf {
     super::utils::codex_home()
+}
+
+#[tauri::command]
+pub fn codex_cli_installed() -> bool {
+    super::installer::codex_cli_installed()
+}
+
+#[tauri::command]
+pub async fn install_codex_cli_user() -> Result<String, String> {
+    let path = super::installer::install_codex_cli_user().await?;
+    Ok(path.display().to_string())
+}
+
+#[tauri::command]
+pub async fn ensure_codex_connected(app: AppHandle) -> Result<(), String> {
+    if app.try_state::<AppState>().is_some() {
+        return Ok(());
+    }
+
+    let event_sink_state = app
+        .try_state::<crate::state::CodexEventSinkState>()
+        .ok_or_else(|| "Codex event sink state is not initialized".to_string())?;
+
+    let codex_client = connect_codex(Arc::clone(&event_sink_state.event_sink)).await?;
+    app.manage(AppState { codex: codex_client });
+    Ok(())
 }
 
 #[tauri::command]

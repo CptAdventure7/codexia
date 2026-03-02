@@ -55,6 +55,9 @@ pub fn run() {
             crate::codex::respond_to_file_change_approval,
             crate::codex::respond_to_request_user_input,
             crate::codex::initialize_codex_async,
+            crate::codex::codex_cli_installed,
+            crate::codex::install_codex_cli_user,
+            crate::codex::ensure_codex_connected,
             crate::commands::filesystem::read_directory,
             crate::commands::filesystem::get_home_directory,
             crate::commands::filesystem::search_files,
@@ -143,6 +146,13 @@ pub fn run() {
             let app_handle = app.handle().clone();
             let event_sink: Arc<dyn crate::features::event_sink::EventSink> =
                 Arc::new(crate::features::event_sink::TauriEventSink::new(app_handle));
+            app.handle().manage(crate::state::CodexEventSinkState {
+                event_sink: Arc::clone(&event_sink),
+            });
+            app.handle()
+                .manage(crate::codex::CodexInitializationState::new(Arc::clone(
+                    &event_sink,
+                )));
 
             let codex_init_started_at = Instant::now();
             let init_result = tauri::async_runtime::block_on(async {
@@ -163,10 +173,6 @@ pub fn run() {
                     );
 
                     app.handle().manage(crate::codex::AppState { codex: codex_client });
-                    app.handle()
-                        .manage(crate::codex::CodexInitializationState::new(Arc::clone(
-                            &event_sink,
-                        )));
                 }
                 Err(err) => {
                     log::warn!(
