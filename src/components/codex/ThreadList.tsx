@@ -28,6 +28,7 @@ import { formatThreadAge } from '@/utils/formatThreadAge';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import type { ThreadListItem } from '@/types/codex/ThreadListItem';
 import { useLayoutStore } from '@/stores';
+import { getScopedReloadLimit } from './threadListPagination';
 
 type SessionMetaEntry = {
   text?: string;
@@ -48,6 +49,7 @@ export function ThreadList({ cwdOverride }: ThreadListProps = {}) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [scopedThreads, setScopedThreads] = useState<ThreadListItem[]>([]);
   const [scopedNextCursor, setScopedNextCursor] = useState<string | null>(null);
+  const scopedLoadedCountRef = useRef(3);
   // Stable ref so the event listener callback always calls the latest fetch
   const reloadScopedThreadsRef = useRef<(() => Promise<void>) | null>(null);
   const [sessionMeta, setSessionMeta] = useState<Record<string, SessionMetaEntry>>({});
@@ -111,17 +113,23 @@ export function ThreadList({ cwdOverride }: ThreadListProps = {}) {
   }, [loadSessionMeta]);
 
   useEffect(() => {
+    scopedLoadedCountRef.current = getScopedReloadLimit(scopedThreads.length);
+  }, [scopedThreads.length]);
+
+  useEffect(() => {
     if (!isProjectScoped) {
       reloadScopedThreadsRef.current = null;
+      scopedLoadedCountRef.current = 3;
       return;
     }
     let cancelled = false;
 
     const loadScopedThreads = async () => {
       try {
+        const limit = getScopedReloadLimit(scopedLoadedCountRef.current);
         const params: ThreadListParams = {
           cursor: null,
-          limit: 3,
+          limit,
           modelProviders: null,
           sortKey,
           archived: false,
