@@ -5,6 +5,7 @@ import { useCodexEvents } from '@/hooks/codex';
 import { AppLayout } from '@/components/layout';
 import { isTauri } from '@/hooks/runtime';
 import { HistoryProjectsDialog } from '@/components/project-selector';
+import { shouldEnableCodexEvents } from '@/hooks/codex/startupGate';
 import {
   ensureCodexConnected,
   initializeCodexAsync,
@@ -14,6 +15,8 @@ import {
 import { CodexInstallDialog } from '@/components/codex/CodexInstallDialog';
 
 function AppShell() {
+  const isTauriRuntime = isTauri();
+  const [codexReady, setCodexReady] = useState(!isTauriRuntime);
   const [installDialogOpen, setInstallDialogOpen] = useState(false);
   const [installingCodex, setInstallingCodex] = useState(false);
   const [installError, setInstallError] = useState<string | null>(null);
@@ -26,6 +29,7 @@ function AppShell() {
       await installCodexCliUser();
       await ensureCodexConnected();
       await initializeCodexAsync();
+      setCodexReady(true);
       setInstallDialogOpen(true);
       setAuthStepVisible(true);
     } catch (error) {
@@ -37,7 +41,7 @@ function AppShell() {
   }, []);
 
   useEffect(() => {
-    if (!isTauri()) {
+    if (!isTauriRuntime) {
       return;
     }
 
@@ -51,6 +55,7 @@ function AppShell() {
         }
 
         if (!installed) {
+          setCodexReady(false);
           setInstallDialogOpen(true);
           setAuthStepVisible(false);
           return;
@@ -58,6 +63,7 @@ function AppShell() {
 
         await ensureCodexConnected();
         await initializeCodexAsync();
+        setCodexReady(true);
       } catch (error) {
         console.warn('Failed to initialize codex asynchronously', error);
       }
@@ -77,10 +83,10 @@ function AppShell() {
       cancelled = true;
       unlisten.then((fn) => fn());
     };
-  }, []);
+  }, [isTauriRuntime]);
 
   // Listen to codex events
-  useCodexEvents();
+  useCodexEvents(shouldEnableCodexEvents(isTauriRuntime, codexReady));
 
   return (
     <>
