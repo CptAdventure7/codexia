@@ -25,8 +25,10 @@ export function ChatInterface() {
   const { taskDetail } = useSettingsStore();
   const { projects } = useWorkspaceStore();
   const bottomAnchorRef = useRef<HTMLDivElement>(null);
-  const [showQuotes, setShowQuotes] = useState(true);
-  const [showTips, setShowTips] = useState(true);
+  const [showQuotes, setShowQuotes] = useState(false);
+  const [showTips, setShowTips] = useState(false);
+  const previousThreadIdRef = useRef<string | null>(currentThreadId);
+  const previousEventCountRef = useRef(0);
 
   // Get events for the current thread
   const currentThreadEvents = currentThreadId ? events[currentThreadId] || [] : [];
@@ -57,6 +59,19 @@ export function ChatInterface() {
 
   const isEmptyConversation = currentThreadEvents.length === 0;
   const showWorkspaceLauncher = isEmptyConversation && hasAccount === true && projects.length > 0;
+
+  useEffect(() => {
+    const threadChanged = previousThreadIdRef.current !== currentThreadId;
+    const becameEmpty = previousEventCountRef.current > 0 && currentThreadEvents.length === 0;
+
+    if ((threadChanged || becameEmpty) && currentThreadEvents.length === 0) {
+      setShowQuotes(false);
+      setShowTips(false);
+    }
+
+    previousThreadIdRef.current = currentThreadId;
+    previousEventCountRef.current = currentThreadEvents.length;
+  }, [currentThreadId, currentThreadEvents.length]);
 
   const renderedEvents: Array<{
     key: string;
