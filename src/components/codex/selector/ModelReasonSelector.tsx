@@ -9,6 +9,7 @@ import type { ReasoningEffort } from '@/bindings';
 import { useCallback, useEffect, useState } from 'react';
 import { useConfigStore } from '@/stores/codex';
 import { cn } from '@/lib/utils';
+import { getReasoningEffortDisplay } from './reasoningEffortDisplay';
 
 type Provider = 'openai' | 'ollama';
 
@@ -246,15 +247,12 @@ export function ModelReasonSelector() {
             {modelProvider === 'openai'
               ? openAiReasoningOptions.map((option) => (
                   <SelectItem key={option.reasoningEffort} value={option.reasoningEffort}>
-                    <div className="flex flex-col gap-0.5">
-                      <span>{option.reasoningEffort}</span>
-                      <span className="text-[10px] text-muted-foreground">{option.description}</span>
-                    </div>
+                    {getReasoningEffortDisplay(option)}
                   </SelectItem>
                 ))
               : OLLAMA_REASONING_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
-                    {option}
+                    {getReasoningEffortDisplay(option)}
                   </SelectItem>
                 ))}
           </SelectContent>
