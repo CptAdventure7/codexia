@@ -1,13 +1,30 @@
 use crate::features::automation::{self, AutomationRunRecord, AutomationSchedule, AutomationTask};
 use crate::cc::CCState;
 use crate::codex::AppState;
+use crate::state::CodexEventSinkState;
+use std::sync::Arc;
 use tauri::State;
+
+async fn ensure_runtime_initialized(
+    app_state: &State<'_, AppState>,
+    cc_state: &State<'_, CCState>,
+    event_sink_state: &State<'_, CodexEventSinkState>,
+) -> Result<(), String> {
+    crate::features::automation::initialize_automation_runtime(
+        Some(app_state.codex.clone()),
+        cc_state.inner().clone(),
+        Arc::clone(&event_sink_state.event_sink),
+    )
+    .await
+}
 
 #[tauri::command]
 pub async fn list_automations(
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<Vec<AutomationTask>, String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::list_automations(Some(state.codex.clone()), Some(cc_state.inner().clone())).await
 }
 
@@ -30,7 +47,9 @@ pub async fn create_automation(
     model: Option<String>,
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<AutomationTask, String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::create_automation(
         name,
         projects,
@@ -57,7 +76,9 @@ pub async fn update_automation(
     model: Option<String>,
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<AutomationTask, String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::update_automation(
         id,
         name,
@@ -79,7 +100,9 @@ pub async fn set_automation_paused(
     paused: bool,
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<AutomationTask, String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::set_automation_paused(
         id,
         paused,
@@ -94,7 +117,9 @@ pub async fn delete_automation(
     id: String,
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<(), String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::delete_automation(id, Some(state.codex.clone()), Some(cc_state.inner().clone()))
         .await
 }
@@ -104,7 +129,9 @@ pub async fn run_automation_now(
     id: String,
     state: State<'_, AppState>,
     cc_state: State<'_, CCState>,
+    event_sink_state: State<'_, CodexEventSinkState>,
 ) -> Result<(), String> {
+    ensure_runtime_initialized(&state, &cc_state, &event_sink_state).await?;
     automation::run_automation_now(id, Some(state.codex.clone()), Some(cc_state.inner().clone()))
         .await
 }
