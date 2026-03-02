@@ -179,20 +179,7 @@ pub fn list_threads_payload(params: Value, cwd: Option<&str>) -> io::Result<Valu
     if let Some(cwd) = cwd {
         let filter_cwd = cwd.trim();
         if !filter_cwd.is_empty() {
-            let filter_repo_root = repo_root_for_path(filter_cwd);
-            let mut entry_repo_roots: HashMap<String, Option<String>> = HashMap::new();
-            entries.retain(|entry| {
-                if entry.cwd == filter_cwd {
-                    return true;
-                }
-                let entry_root = entry_repo_roots
-                    .entry(entry.cwd.clone())
-                    .or_insert_with(|| repo_root_for_path(&entry.cwd));
-                match (&filter_repo_root, entry_root) {
-                    (Some(filter_root), Some(entry_root)) => filter_root == entry_root,
-                    _ => false,
-                }
-            });
+            entries.retain(|entry| entry.cwd == filter_cwd);
         }
     }
 
@@ -383,39 +370,15 @@ fn filter_entries_for_watch_cwds(entries: &[HistoryEntry], watch_cwds: &[String]
         return entries.to_vec();
     }
 
-    let filter_repo_roots = normalized_watch_cwds
-        .iter()
-        .map(|cwd| repo_root_for_path(cwd))
-        .collect::<Vec<_>>();
-    let mut entry_repo_roots: HashMap<String, Option<String>> = HashMap::new();
-
     entries
         .iter()
         .filter(|entry| {
             normalized_watch_cwds
                 .iter()
-                .enumerate()
-                .any(|(idx, filter_cwd)| {
-                    if entry.cwd == *filter_cwd {
-                        return true;
-                    }
-                    let entry_root = entry_repo_roots
-                        .entry(entry.cwd.clone())
-                        .or_insert_with(|| repo_root_for_path(&entry.cwd));
-                    match (&filter_repo_roots[idx], entry_root) {
-                        (Some(filter_root), Some(entry_root)) => filter_root == entry_root,
-                        _ => false,
-                    }
-                })
+                .any(|filter_cwd| entry.cwd == *filter_cwd)
         })
         .cloned()
         .collect()
-}
-
-fn repo_root_for_path(path: &str) -> Option<String> {
-    let repo = gix::discover(path).ok()?;
-    let root = repo.workdir()?;
-    Some(root.to_string_lossy().to_string())
 }
 
 fn reconcile_sessions_with_cache(cached_entries: Vec<HistoryEntry>) -> io::Result<Vec<HistoryEntry>> {
@@ -616,4 +579,49 @@ fn write_history(entries: &[HistoryEntry]) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn build_entry(id: &str, cwd: String) -> HistoryEntry {
+        HistoryEntry {
+            id: id.to_string(),
+            preview: "preview".to_string(),
+            cwd,
+            path: String::new(),
+            source: "codex".to_string(),
+            created_at: 0,
+            updated_at: 0,
+            archived: false,
+        }
+    }
+
+    #[test]
+    fn filter_entries_for_watch_cwds_does_not_include_sibling_repo_paths() {
+        let temp = tempfile::tempdir().expect("create tempdir");
+        let repo_root = temp.path();
+        let cwd_a = repo_root.join("a");
+        let cwd_b = repo_root.join("b");
+        std::fs::create_dir_all(&cwd_a).expect("create a");
+        std::fs::create_dir_all(&cwd_b).expect("create b");
+        gix::init(repo_root).expect("init repo");
+
+        let cwd_a_str = cwd_a.to_string_lossy().to_string();
+        let cwd_b_str = cwd_b.to_string_lossy().to_string();
+        let entries = vec![
+            build_entry("entry-a", cwd_a_str.clone()),
+            build_entry("entry-b", cwd_b_str.clone()),
+        ];
+        let watch_cwds = vec![cwd_a_str];
+
+        let filtered = filter_entries_for_watch_cwds(&entries, &watch_cwds);
+        assert_eq!(
+            filtered.len(),
+            1,
+            "filter should only include exact cwd matches"
+        );
+        assert_eq!(filtered[0].id, "entry-a");
+    }
 }

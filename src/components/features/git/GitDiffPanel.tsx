@@ -11,7 +11,6 @@ import {
   type GitFileDiffMetaResponse,
   type GitStatusResponse,
 } from '@/services/tauri';
-import { useGitWatch } from '@/hooks/useGitWatch';
 import { useWorkspaceStore } from '@/stores';
 import { GitDiffDialogs } from './GitDiffDialogs';
 import { GitDiffTopBar } from './GitDiffTopBar';
@@ -70,9 +69,6 @@ export function GitDiffPanel({ cwd, isActive }: GitDiffPanelProps) {
       setGitLoading(false);
     }
   }, [cwd]);
-
-  // Watch .git/index for changes and auto-refresh
-  useGitWatch(cwd, refreshGitStatus, isActive);
 
   useEffect(() => {
     if (cwd) return;

@@ -9,7 +9,6 @@ import { useCCSessionManager } from '@/hooks/useCCSessionManager';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { GitStatsIndicator } from '@/components/features/GitStatsIndicator';
 import { useGitStatsStore } from '@/stores/useGitStatsStore';
-import { useGitWatch } from '@/hooks/useGitWatch';
 import { useSettingsStore } from '@/stores/settings';
 
 type MainHeaderProps = {
@@ -55,8 +54,6 @@ export function MainHeader({ isTerminalOpen, onToggleTerminal }: MainHeaderProps
   useEffect(() => {
     refreshGitStats();
   }, [cwd, refreshGitStats]);
-
-  useGitWatch(cwd || null, refreshGitStats, Boolean(cwd));
 
   const handleNewThread = async () => {
     if (selectedAgent === 'cc') {
