@@ -2,14 +2,17 @@ import { ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { listModels } from '@/services/tauri';
 import type { Model } from '@/bindings/v2';
 import type { ReasoningEffort } from '@/bindings';
 import { useCallback, useEffect, useState } from 'react';
 import { useConfigStore } from '@/stores/codex';
 import { cn } from '@/lib/utils';
-import { getReasoningEffortDisplay } from './reasoningEffortDisplay';
+import {
+  getReasoningEffortDisplay,
+  getReasoningEffortTriggerLabel,
+} from './reasoningEffortDisplay';
 
 type Provider = 'openai' | 'ollama';
 
@@ -241,7 +244,9 @@ export function ModelReasonSelector() {
           disabled={!canSelectModel || !canSelectReasoning}
         >
           <SelectTrigger className="h-8 w-[100px]">
-            <SelectValue placeholder="Default" />
+            <span className="truncate text-xs">
+              {getReasoningEffortTriggerLabel(reasoningEffort)}
+            </span>
           </SelectTrigger>
           <SelectContent>
             {modelProvider === 'openai'

@@ -10,3 +10,9 @@ export function getReasoningEffortDisplay(
 ): ReasoningEffort {
   return typeof option === 'string' ? option : option.reasoningEffort;
 }
+
+export function getReasoningEffortTriggerLabel(
+  reasoningEffort: ReasoningEffort | null | undefined,
+): string {
+  return reasoningEffort ?? 'Default';
+}
