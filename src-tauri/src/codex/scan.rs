@@ -179,7 +179,7 @@ pub fn list_threads_payload(params: Value, cwd: Option<&str>) -> io::Result<Valu
     if let Some(cwd) = cwd {
         let filter_cwd = cwd.trim();
         if !filter_cwd.is_empty() {
-            entries.retain(|entry| entry.cwd == filter_cwd);
+            entries.retain(|entry| cwd_matches(&entry.cwd, filter_cwd));
         }
     }
 
@@ -375,10 +375,34 @@ fn filter_entries_for_watch_cwds(entries: &[HistoryEntry], watch_cwds: &[String]
         .filter(|entry| {
             normalized_watch_cwds
                 .iter()
-                .any(|filter_cwd| entry.cwd == *filter_cwd)
+                .any(|filter_cwd| cwd_matches(&entry.cwd, filter_cwd))
         })
         .cloned()
         .collect()
+}
+
+fn normalize_cwd_for_compare(cwd: &str) -> String {
+    let trimmed = cwd.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    let mut normalized = trimmed.replace('\\', "/");
+    while normalized.len() > 1 && normalized.ends_with('/') {
+        normalized.pop();
+    }
+
+    if cfg!(windows) {
+        normalized = normalized.to_ascii_lowercase();
+    }
+
+    normalized
+}
+
+fn cwd_matches(entry_cwd: &str, filter_cwd: &str) -> bool {
+    let normalized_entry = normalize_cwd_for_compare(entry_cwd);
+    let normalized_filter = normalize_cwd_for_compare(filter_cwd);
+    !normalized_entry.is_empty() && normalized_entry == normalized_filter
 }
 
 fn reconcile_sessions_with_cache(cached_entries: Vec<HistoryEntry>) -> io::Result<Vec<HistoryEntry>> {
@@ -623,5 +647,27 @@ mod tests {
             "filter should only include exact cwd matches"
         );
         assert_eq!(filtered[0].id, "entry-a");
+    }
+
+    #[test]
+    fn filter_entries_for_watch_cwds_handles_windows_path_variants() {
+        let entry = build_entry(
+            "entry-main",
+            "c:\\INO_Projets\\Maxwell_repository\\codexia".to_string(),
+        );
+        let entries = vec![entry];
+        let watch_cwds = vec!["C:/INO_Projets/Maxwell_repository/codexia/\\".to_string()];
+
+        let filtered = filter_entries_for_watch_cwds(&entries, &watch_cwds);
+
+        if cfg!(windows) {
+            assert_eq!(
+                filtered.len(),
+                1,
+                "windows path matching should be robust to case, slash, and trailing separator differences"
+            );
+        } else {
+            assert_eq!(filtered.len(), 0);
+        }
     }
 }
