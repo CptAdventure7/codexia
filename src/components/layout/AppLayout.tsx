@@ -15,7 +15,6 @@ import AgentsView from '@/views/AgentsView';
 import LoginView from '@/views/LoginView';
 import { AutoMationsView } from '../features/automations';
 import { BottomTerminal } from '@/components/terminal/BottomTerminal';
-import { LearnView } from '@/views/LearnView';
 import { Button } from '@/components/ui/button';
 import { PanelLeft } from 'lucide-react';
 
@@ -210,7 +209,6 @@ export function AppLayout() {
                         {view === 'automations' && <AutoMationsView />}
                         {view === 'codex' && <ChatInterface />}
                         {view === 'history' && <History />}
-                        {view === 'learn' && <LearnView />}
                         {view === 'login' && <LoginView />}
                         {view === 'marketplace' && <MarketplaceView />}
                         {view === 'usage' && <UsageView />}

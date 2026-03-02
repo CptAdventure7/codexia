@@ -16,7 +16,6 @@ export const en = {
     changeLanguage: 'Change language',
     menu: 'Menu',
     remoteControl: 'Remote control',
-    donate: 'Donate',
     accentColor: 'Accent Color',
   },
   sidebar: {
@@ -81,7 +80,4 @@ export const en = {
     },
     noResults: 'No matching skills found',
   },
-  donationPurpose:
-    "Your donation will be used to support Codexia's continued development, server costs,\
-        new feature research, and long‑term maintenance. Thank you for helping this project grow!",
 };

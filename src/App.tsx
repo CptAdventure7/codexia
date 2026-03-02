@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import './App.css';
 import { useCodexEvents } from '@/hooks/codex';
-import { useDeepLink } from '@/hooks/useDeepLink';
 import { AppLayout } from '@/components/layout';
 import { isTauri } from '@/hooks/runtime';
 import { HistoryProjectsDialog } from '@/components/project-selector';
@@ -43,9 +42,5 @@ function AppShell() {
 }
 
 export default function App() {
-  if (isTauri()) {
-    useDeepLink();
-  }
-
   return <AppShell />;
 }

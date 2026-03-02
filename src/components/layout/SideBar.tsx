@@ -1,5 +1,4 @@
 import {
-  BookOpen,
   ChevronRight,
   Ellipsis,
   FolderPlus,
@@ -503,17 +502,6 @@ export function SideBar() {
 
       <div className="min-h-0 min-w-0 max-w-full overflow-x-hidden flex justify-between items-center gap-2">
         <UserInfo />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          title="open learn view"
-          onClick={() => {
-            setView('learn');
-          }}
-        >
-          <BookOpen className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

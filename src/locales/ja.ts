@@ -16,7 +16,6 @@ export const ja = {
     changeLanguage: '言語を変更',
     menu: 'メニュー',
     remoteControl: 'リモートコントロール',
-    donate: '寄付する',
     accentColor: 'アクセントカラー',
   },
   sidebar: {
@@ -80,7 +79,6 @@ export const ja = {
       uninstalled: '未インストール',
     },
     noResults: '該当するスキルが見つかりません',
-  },
-  donationPurpose:
-    'ご寄付は Codexia の継続的な開発、サーバー費用、新機能の研究、長期的な保守に活用されます。このプロジェクトの成長を支えていただきありがとうございます！',
+  }
 };
+

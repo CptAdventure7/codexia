@@ -16,7 +16,6 @@ export const zh = {
     changeLanguage: '切换语言',
     menu: '菜单',
     remoteControl: '远程控制',
-    donate: '捐助',
     accentColor: '主题颜色',
   },
   sidebar: {
@@ -79,7 +78,6 @@ export const zh = {
       uninstalled: '未安装',
     },
     noResults: '未找到匹配的技能',
-  },
-  donationPurpose:
-    '您的捐赠将用于支持 Codexia 的持续开发、服务器费用、新功能研发以及长期维护。感谢您帮助这个项目成长！',
+  }
 };
+
